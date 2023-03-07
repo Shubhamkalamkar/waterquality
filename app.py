@@ -14,6 +14,28 @@ model = pickle.load(open('model.pkl', 'rb'))
 def hello():
     return render_template("predict.html")
 
+
+@app.route('/api',methods=['POST'])
+def api():
+    if request.method == "POST":
+        input_features = [float(x) for x in request.form.values()]
+        features_value = [np.array(input_features)]
+
+        feature_names = ["ph", "Hardness", "Solids", "Chloramines", "Sulfate",
+                         "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"]
+
+        df = pd.DataFrame(features_value, columns=feature_names)
+        df = scaler.transform(df)
+        output = model.predict(df)
+
+        if output[0] == 1:
+            water = "safe"
+        else:
+            water = "not safe"
+
+
+    return jsonify({'placement': water})
+
 @app.route("/predict", methods=["GET", "POST"])
 def predict():
     if request.method == "POST":
@@ -35,27 +57,9 @@ def predict():
         return render_template('predict.html', prediction_text="water is {} for human consumption ".format(prediction))
         # return jsonify({'placement': prediction})
 
-    @app.route("/quality", methods=["GET", "POST"])
-    def quality():
-        if request.method == "POST":
-            input_features = [float(x) for x in request.form.values()]
-            features_value = [np.array(input_features)]
-
-            feature_names = ["ph", "Hardness", "Solids", "Chloramines", "Sulfate",
-                             "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"]
-
-            df = pd.DataFrame(features_value, columns=feature_names)
-            df = scaler.transform(df)
-            output = model.predict(df)
-
-            if output[0] == 1:
-                prediction = "safe"
-            else:
-                prediction = "not safe"
 
 
 
-            return jsonify({'placement': prediction})
 
 if __name__ == "__main__":
     app.run(debug=True)
