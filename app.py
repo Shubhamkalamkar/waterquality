@@ -3,26 +3,83 @@ import pickle
 import pandas as pd
 import numpy as np
 import joblib
+
 scaler = joblib.load("my_scaler.save")
 
+import pyrebase
+
+config = {
+    "apiKey": "AIzaSyAZj0MX19-WeHexcoJICUGbaQDO6POs5cA",
+    "authDomain": "nodemcu-e945b.firebaseapp.com",
+    "databaseURL": "https://nodemcu-e945b-default-rtdb.firebaseio.com",
+    "projectId": "nodemcu-e945b",
+    "storageBucket": "nodemcu-e945b.appspot.com",
+    "messagingSenderId": "1092087552226",
+    "appId": "1:1092087552226:web:2217b4b9aed2e772d5e6bb",
+    "measurementId": "G-BDW1T5JV4D"
+}
 
 app = Flask(__name__)
 model = pickle.load(open('model.pkl', 'rb'))
 
-@app.route("/home")
+
+@app.route("/home", methods=["GET"])
 @app.route("/")
 def hello():
-    return render_template("predict.html")
+    firebase = pyrebase.initialize_app(config)
+    db = firebase.database()
+
+    ph_val = db.child("sensors_data").child("15:51:43").child("Ph").get()
+    tds_val = db.child("sensors_data").child("15:51:43").child("Tds").get()
+    temp_val = db.child("sensors_data").child("15:51:43").child("Temperature").get()
+    ph = ph_val.val()
+    tds = tds_val.val()
+    temp = temp_val.val()
 
 
-@app.route('/api',methods=['POST'])
+    input_features = [ph, 290, 10000, 8, 481, 4, 18, 124, 6]
+    features_value = [np.array(input_features)]
+
+    feature_names = ["ph", "Hardness", "Solids", "Chloramines", "Sulfate",
+                     "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"]
+
+    df = pd.DataFrame(features_value, columns=feature_names)
+    df = scaler.transform(df)
+    output = model.predict(df)
+
+    if output[0] == 1:
+        prediction = "safe"
+    else:
+        prediction = "not safe"
+
+    return render_template('predict.html', prediction_text="water is {} for human consumption ".format(prediction), ph_val_use=ph, tds_val_use=tds)
+
+
+@app.route('/api', methods=['GET'])  # for android
 def api():
-    if request.method == "POST":
-        input_features = [float(x) for x in request.form.values()]
+    if request.method == "GET":
+
+        firebase = pyrebase.initialize_app(config)
+        db = firebase.database()
+
+        ph_val = db.child("sensors_data").child("15:51:43").child("Ph").get()
+        tds_val = db.child("sensors_data").child("15:51:43").child("Tds").get()
+        temp_val = db.child("sensors_data").child("15:51:43").child("Temperature").get()
+        ph = ph_val.val()
+        tds = tds_val.val()
+        temp = temp_val.val()
+
+        input_features = [ph, 290, 10000, 8, 481, 4, 18, 124, 6]
         features_value = [np.array(input_features)]
 
         feature_names = ["ph", "Hardness", "Solids", "Chloramines", "Sulfate",
                          "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"]
+
+        # input_features = [float(x) for x in request.form.values()]
+        # features_value = [np.array(input_features)]
+        #
+        # feature_names = ["ph", "Hardness", "Solids", "Chloramines", "Sulfate",
+        #                  "Conductivity", "Organic_carbon", "Trihalomethanes", "Turbidity"]
 
         df = pd.DataFrame(features_value, columns=feature_names)
         df = scaler.transform(df)
@@ -33,10 +90,10 @@ def api():
         else:
             water = "not safe"
 
+    return jsonify({'prediction': water})
 
-    return jsonify({'placement': water})
 
-@app.route("/predict", methods=["GET", "POST"])
+@app.route("/predict", methods=["GET", "POST"])  # for website
 def predict():
     if request.method == "POST":
         input_features = [float(x) for x in request.form.values()]
@@ -55,10 +112,6 @@ def predict():
             prediction = "not safe"
 
         return render_template('predict.html', prediction_text="water is {} for human consumption ".format(prediction))
-        # return jsonify({'placement': prediction})
-
-
-
 
 
 if __name__ == "__main__":

@@ -13,20 +13,16 @@
 </head>
 <body><br><br>
     <h1 style="text-align:center; font-size:60px; color: white; text-decoration:underline;  font-family: 'Josefin Sans', sans-serif;">Water Quality Prediction</h1>
-    <form action="{{ url_for('predict')}}" class="loginbox" method="post"><br>
-<center>
-    <input type="text" name="ph" placeholder="Enter pH value" required="required" /> &nbsp; &nbsp; &nbsp; &nbsp;
-    <input type="text" name="Hardness" placeholder="Enter Hardness" required="required" /><br><br>
-    <input type="text" name="Solids" placeholder="Enter Solids" required="required" />&nbsp; &nbsp; &nbsp; &nbsp;
-    <input type="text" name="Chloramines" placeholder="Enter Chloramines" required="required" /><br><br>
-    <input type="text" name="Sulfate" placeholder="Enter Sulfate" required="required" />&nbsp; &nbsp; &nbsp; &nbsp;
-    <input type="text" name="Conductivity" placeholder="Enter Conductivity" required="required" /><br><br>
-    <input type="text" name="Organic_carbon" placeholder="Enter Organic_carbon" required="required" />&nbsp; &nbsp; &nbsp; &nbsp;
-    <input type="text" name="Trihalomethanes" placeholder="Enter Trihalomethanes" required="required" /><br><br>
-    <input type="text" name="Turbidity" placeholder="Enter Turbidity" required="required" /><br><br>
-    <button type="submit" class="btn btn-light btn-outline-success" id="sendMessageButton">Predict</button>
-</form>
-<h1 style="color: white; font-family: 'Josefin Sans', sans-serif;">{{prediction_text }}</h1>
+   <div class="values">
+       <h1>
+           Ph :{{ph_val_use}}
+       </h1>
+       <h1>
+           Tds :{{tds_val_use}}
+       </h1>
+   </div>
+
+<h1 style="color: white; font-family: 'Josefin Sans', sans-serif; text-align: center;">{{prediction_text }}</h1>
 </center>
 </body>
 </html>
