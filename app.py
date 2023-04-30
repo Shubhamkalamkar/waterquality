@@ -29,9 +29,14 @@ def hello():
     firebase = pyrebase.initialize_app(config)
     db = firebase.database()
 
-    ph_val = db.child("sensors_data").child("15:51:43").child("Ph").get()
-    tds_val = db.child("sensors_data").child("15:51:43").child("Tds").get()
-    temp_val = db.child("sensors_data").child("15:51:43").child("Temperature").get()
+
+    
+
+    ph_val = db.child("sensors_data").child("value").child("Ph").get()
+    tds_val = db.child("sensors_data").child("value").child("Tds").get()
+    temp_val = db.child("sensors_data").child("value").child("Temperature").get()
+
+
     ph = ph_val.val()
     tds = tds_val.val()
     temp = temp_val.val()
@@ -52,7 +57,7 @@ def hello():
     else:
         prediction = "not safe"
 
-    return render_template('predict.html', prediction_text="water is {} for human consumption ".format(prediction), ph_val_use=ph, tds_val_use=tds)
+    return render_template('predict.html', prediction_text="water is {} for human consumption ".format(prediction), ph_val_use=ph, tds_val_use=tds, temp_val_use=temp)
 
 if __name__ == "__main__":
     app.run(debug=True)
